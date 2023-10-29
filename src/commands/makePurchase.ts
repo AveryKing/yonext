@@ -28,15 +28,42 @@ export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInb
             },
         });
 
-        if (!store) {
-            sendError(ws, `Store ${storeId} does not exist`);
-            return;
-        } else if (!store.items.some(i => i.itemId === itemId)) {
-            sendError(ws, `Item ${itemId} is not available in store ${storeId}`);
-            return;
-        }
+        if (!store) return sendError(ws, `Store ${storeId} does not exist`);
 
-        // Continue with the purchase logic...
+        if (!store.items.some(i => i.itemId === itemId))
+            return sendError(ws, `Item ${itemId} is not available in store ${storeId}`);
+
+        const player = await prisma.player.findUnique({
+            where: { playerId: Number(from) },
+            select: {
+                playerId: true,
+                money: true,
+                inventoryItems: true
+            },
+        });
+
+        if (!player) return sendError(ws, `Player ${from} does not exist`);
+
+        const itemPrice = store.items.find(i => i.itemId === itemId)!.price;
+        if (player.money < itemPrice * itemQuantity)
+            return sendError(ws, `Unable to purchase item due to insufficient funds`);
+
+        await prisma.player.update({
+            where: { playerId: Number(from) },
+            data: {
+                money: player.money - itemPrice * itemQuantity,
+                inventoryItems: {
+                    create: Array(itemQuantity).fill({
+                        item: {
+                            connect: {
+                                itemId
+                            }
+                        }
+                    })
+                }
+            }
+        });
+
 
     } catch (error) {
         console.error('Error handling makePurchase command:', error);
