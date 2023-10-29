@@ -20,4 +20,32 @@ model Test {
   password  String
 }
 
+model Player {
+  playerId       Int              @id @default(autoincrement())
+  name           String
+  money          Int
+  inventoryItems InventoryItems[]
+}
 
+model Item {
+  itemId         Int              @id @default(autoincrement())
+  name           String
+  price          Int
+  store          Store?           @relation(fields: [storeId], references: [storeId])
+  storeId   Int?
+  inventoryItems InventoryItems[]
+}
+
+model Store {
+  storeId Int    @id @default(autoincrement())
+  name    String
+  items   Item[]
+}
+
+model InventoryItems {
+  playerItemId   Int     @id @default(autoincrement())
+  player         Player? @relation(fields: [playerPlayerId], references: [playerId])
+  playerPlayerId Int?
+  item           Item?   @relation(fields: [itemItemId], references: [itemId])
+  itemItemId     Int?
+}
