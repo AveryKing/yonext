@@ -124,7 +124,8 @@ export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInb
 
         // Send the response
         console.log(responsePayload)
-        ws.send(JSON.stringify(responsePayload));
+        //ws.send(JSON.stringify(responsePayload));
+        ws.send(JSON.stringify({ "balance": 31, "success": "true", "_cmd": "makePurchase", "inventory": [{ "swf": "", "assetTypeId": 0, "startItem": 0, "is_buyable": 1, "playerItemIds": [21626976288], "activeInStore": 1, "description": "A straight cable snake for\r\nmusicians.", "customData": {}, "metaData": "", "price": 350, "is_rentable": 0, "currency": "coins", "playerId": 187901763, "quantity": 1, "newItem": true, "price_cash": "0", "version": 1, "playerItemId": 21626976288, "trade_limit": "1", "rental": 0, "tags": "", "itemId": "29888", "filename": "MwrRckCab02", "name": "Bundled Straight Cables", "paid": 350, "parentCategoryId": "5", "category": "Electronics", "categoryId": "2010", "can_consume": "0" }] }))
 
     } catch (error) {
         console.error('Error handling makePurchase command:', error);

@@ -56,11 +56,20 @@ model StoreItem {
 }
 
 model InventoryItems {
-  playerItemId   Int     @id @default(autoincrement())
-  player         Player? @relation(fields: [playerId], references: [playerId])
-  playerId Int?
-  item           Item?   @relation(fields: [itemId], references: [itemId])
-  itemId     Int?
+  playerItemId Int               @id @default(autoincrement())
+  player       Player?           @relation(fields: [playerId], references: [playerId])
+  playerId     Int?
+  item         Item?             @relation(fields: [itemId], references: [itemId])
+  itemId       Int?
+  tag          InventoryItemTag? @default(AVAILABLE)
+}
+
+enum InventoryItemTag {
+  IN_USE
+  AVAILABLE_CLOTHING
+  AVAILABLE_FURNITURE
+  AVAILABLE
+  SPECIAL
 }
 
 model ItemCategory {
