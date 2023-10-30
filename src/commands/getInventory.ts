@@ -35,6 +35,104 @@ type InventoryManagerCommand = {
     from: number;
 };
 
+export const getInventory = async (ws: WebSocket, command: any) => {
+    const response = {
+        "itemsInUse": [],
+        "_cmd": "getInventory",
+        "inventory": [
+            {
+                "fg": 0,
+                "swf": "",
+                "assetTypeId": "0",
+                "startItem": "0",
+                "activeInStore": 0,
+                "customData": {},
+                "can_gift": "1",
+                "metaData": "",
+                "price": "1000",
+                "forceRasterize": "0",
+                "playerId": "187901763",
+                "newItem": false,
+                "g": "2",
+                "price_cash": "0",
+                "version": 1001,
+                "playerItemId": "97",
+                "trade_limit": "1",
+                "rental": 0,
+                "tags": "",
+                "itemId": "25207",
+                "filename": "Ninja",
+                "name": "Ninja",
+                "parentCategoryId": "3",
+                "category": "Costumes",
+                "categoryId": "2025",
+                "can_consume": "0"
+            },
+            {
+                "fg": 0,
+                "swf": "",
+                "assetTypeId": "0",
+                "startItem": "0",
+                "activeInStore": 0,
+                "customData": {},
+                "can_gift": "1",
+                "metaData": "",
+                "price": "1000",
+                "forceRasterize": "0",
+                "playerId": "187901763",
+                "newItem": false,
+                "g": "2",
+                "price_cash": "0",
+                "version": 1001,
+                "playerItemId": "113",
+                "trade_limit": "1",
+                "rental": 0,
+                "tags": "",
+                "itemId": "25266",
+                "filename": "Dorothy",
+                "name": "Yorothy",
+                "parentCategoryId": "3",
+                "category": "Costumes",
+                "categoryId": "2025",
+                "can_consume": "0"
+            },
+            {
+                "fg": 0,
+                "swf": "",
+                "assetTypeId": "0",
+                "startItem": "0",
+                "activeInStore": 0,
+                "customData": {},
+                "can_gift": "1",
+                "metaData": "",
+                "price": "1000",
+                "forceRasterize": "0",
+                "playerId": "187901763",
+                "newItem": false,
+                "g": "2",
+                "price_cash": "0",
+                "version": 1001,
+                "playerItemId": "112",
+                "trade_limit": "1",
+                "rental": 0,
+                "tags": "",
+                "itemId": "25271",
+                "filename": "Eve",
+                "name": "Nature Woman",
+                "parentCategoryId": "3",
+                "category": "Costumes",
+                "categoryId": "2025",
+                "can_consume": "0"
+            }
+        ],
+        "expiredItems": [],
+        "done": true,
+        "serialNo": 1
+    };
+
+    ws.send(JSON.stringify(response));
+}
+
 export const getPageInventoryByFilter = async (ws: WebSocket, command: InventoryManagerCommand): Promise<void> => {
     const { filter, startIndex, batchSize, from } = command;
 

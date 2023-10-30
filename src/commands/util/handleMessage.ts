@@ -1,29 +1,33 @@
 import * as WebSocket from 'ws';
 import { handleMakePurchase } from '../makePurchase';
 import { handleActivatePlayer } from '../activatePlayer';
-import { getPageInventoryByFilter, getTabInventoryByFilter } from '../getInventory';
+import { getInventory, getPageInventoryByFilter, getTabInventoryByFilter } from '../getInventory';
 
 export const handleMessage = (ws: WebSocket, message: string): void => {
     try {
-        const parsedMessage = JSON.parse(message);
-        console.log('Received command:', parsedMessage._cmd);
+        const msg = JSON.parse(message);
+        console.log('Received command:', msg._cmd);
 
-        switch (parsedMessage._cmd) {
+        switch (msg._cmd) {
             case 'activatePlayer_YOWO5!':
-                handleActivatePlayer(ws, parsedMessage);
+                handleActivatePlayer(ws, msg);
                 break;
             case 'makePurchase':
-                handleMakePurchase(ws, parsedMessage);
+                handleMakePurchase(ws, msg);
                 break;
             case 'InventoryManager.getTabInventoryByFilter':
-                getTabInventoryByFilter(ws, parsedMessage);
+                getTabInventoryByFilter(ws, msg);
                 break;
             case 'InventoryManager.getPageInventoryByFilter':
-                getPageInventoryByFilter(ws, parsedMessage);
+                getPageInventoryByFilter(ws, msg);
                 break;
+            case 'InventoryManager.getInventory':
+                getInventory(ws, msg)
+                break;
+
             // Add cases for other commands...
             default:
-                console.log('Unknown command:', parsedMessage._cmd);
+                console.log('Unknown command:', msg._cmd);
         }
     } catch (error) {
         console.error('Error decoding JSON:', error);

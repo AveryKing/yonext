@@ -98,7 +98,51 @@ const constructActivatePlayerResponse = (playerId: string, name: string, money: 
             mod_level: 0,
             name: name, // Hardcoded name value
             clothing: [
-                // Add clothing items as needed
+                {
+                    "itemId": 25207,
+                    "metaData": "",
+                    "filename": "Ninja",
+                    "gender": "0",
+                    "forceRasterize": 1,
+                    "version": 2,
+                    "categoryId": "2025"
+                },
+                {
+                    "itemId": 27198,
+                    "metaData": "",
+                    "filename": "PinkShades",
+                    "gender": "0",
+                    "forceRasterize": 0,
+                    "version": 1,
+                    "categoryId": "200"
+                },
+                {
+                    "itemId": 26295,
+                    "metaData": "",
+                    "filename": "CupidBow",
+                    "gender": "0",
+                    "forceRasterize": 0,
+                    "version": 2,
+                    "categoryId": "2045"
+                },
+                {
+                    "itemId": 29962,
+                    "metaData": "",
+                    "filename": "NinjaHairWhiteGold",
+                    "gender": "0",
+                    "forceRasterize": 1,
+                    "version": 1,
+                    "categoryId": "1003"
+                },
+                {
+                    "itemId": 87369,
+                    "metaData": "Fill:C7A464|Outline:605329",
+                    "filename": "",
+                    "gender": "0",
+                    "forceRasterize": 0,
+                    "version": 1,
+                    "categoryId": "1000"
+                }
             ],
             tempAppearanceItems: {},
         },
