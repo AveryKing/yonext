@@ -19,7 +19,7 @@ type MakePurchaseInbound = {
 
 export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInbound) => {
     try {
-        const { store: storeId, item, from } = payload;
+        const { store, item, from } = payload;
         const { id: itemId, qty: itemQuantity } = item;
 
         // Fetch item details from Prisma
@@ -33,7 +33,7 @@ export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInb
 
         // Fetch store details from Prisma
         const storeDetails = await prisma.store.findUnique({
-            where: { storeId: Number(storeId) },
+            where: { storeId: Number(store.storeId) },
             include: {
                 items: true,
             },
@@ -81,7 +81,7 @@ export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInb
         ]);
 
         let playerItemIds = purchasedItems.map(i => i.inventoryItems.map(x => x.playerItemId)).flat();
-        
+
         // Construct the response payload
         const responsePayload = {
             balance: playerDetails.money - itemPrice,
@@ -114,7 +114,7 @@ export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInb
                     filename: itemDetails.filename,
                     name: itemDetails.name,
                     paid: itemPrice,
-                    parentCategoryId: itemDetails.category.parentId ?? "??",
+                    parentCategoryId: itemDetails.category.parentId ?? "0",
                     category: itemDetails.category.name,
                     categoryId: itemDetails.categoryId.toString(),
                     can_consume: "0",
@@ -123,6 +123,7 @@ export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInb
         };
 
         // Send the response
+        console.log(responsePayload)
         ws.send(JSON.stringify(responsePayload));
 
     } catch (error) {
