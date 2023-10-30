@@ -30,22 +30,44 @@ model Player {
 model Item {
   itemId         Int              @id @default(autoincrement())
   name           String
+  description    String
+  category       ItemCategory     @relation(fields: [categoryId], references: [categoryId])
   price          Int
-  store          Store?           @relation(fields: [storeId], references: [storeId])
-  storeId   Int?
+  storeId        Int?
   inventoryItems InventoryItems[]
+  filename       String
+  categoryId     Int
+  StoreItem      StoreItem[]
 }
 
 model Store {
-  storeId Int    @id @default(autoincrement())
+  storeId Int         @id @default(autoincrement())
   name    String
-  items   Item[]
+  items   StoreItem[]
+}
+
+model StoreItem {
+  storeItemId Int    @id @default(autoincrement())
+  store       Store? @relation(fields: [storeId], references: [storeId])
+  storeId     Int?
+  item        Item?  @relation(fields: [itemId], references: [itemId])
+  itemId      Int?
+  price       Int
 }
 
 model InventoryItems {
   playerItemId   Int     @id @default(autoincrement())
-  player         Player? @relation(fields: [playerPlayerId], references: [playerId])
-  playerPlayerId Int?
-  item           Item?   @relation(fields: [itemItemId], references: [itemId])
-  itemItemId     Int?
+  player         Player? @relation(fields: [playerId], references: [playerId])
+  playerId Int?
+  item           Item?   @relation(fields: [itemId], references: [itemId])
+  itemId     Int?
+}
+
+model ItemCategory {
+  categoryId Int            @id @default(autoincrement())
+  name       String
+  items      Item[]
+  parent     ItemCategory?  @relation("SubCategory", fields: [parentId], references: [categoryId])
+  parentId   Int?
+  children   ItemCategory[] @relation("SubCategory")
 }

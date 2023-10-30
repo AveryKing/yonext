@@ -15,57 +15,119 @@ type MakePurchaseInbound = {
     lockCode: null | string;
 };
 
-export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInbound): Promise<void> => {
+// Assuming you have the necessary imports and types defined
+
+export const handleMakePurchase = async (ws: WebSocket, payload: MakePurchaseInbound) => {
     try {
         const { store: storeId, item, from } = payload;
         const { id: itemId, qty: itemQuantity } = item;
 
-        const store = await prisma.store.findUnique({
+        // Fetch item details from Prisma
+        const itemDetails = await prisma.item.findUnique({
+            where: { itemId: itemId },
+            include: {
+                category: true,
+                inventoryItems: true,
+            },
+        });
+
+        // Fetch store details from Prisma
+        const storeDetails = await prisma.store.findUnique({
             where: { storeId: Number(storeId) },
-            select: {
-                storeId: true,
-                items: true
+            include: {
+                items: true,
             },
         });
 
-        if (!store) return sendError(ws, `Store ${storeId} does not exist`);
-
-        if (!store.items.some(i => i.itemId === itemId))
-            return sendError(ws, `Item ${itemId} is not available in store ${storeId}`);
-
-        const player = await prisma.player.findUnique({
+        // Fetch player details from Prisma
+        const playerDetails = await prisma.player.findUnique({
             where: { playerId: Number(from) },
-            select: {
-                playerId: true,
-                money: true,
-                inventoryItems: true
-            },
         });
 
-        if (!player) return sendError(ws, `Player ${from} does not exist`);
+        if (!itemDetails || !storeDetails || !playerDetails) {
+            return sendError(ws, "Failed to fetch necessary data from the database");
+        }
 
-        const itemPrice = store.items.find(i => i.itemId === itemId)!.price;
-        if (player.money < itemPrice * itemQuantity)
-            return sendError(ws, `Unable to purchase item due to insufficient funds`);
+        const itemPrice = itemDetails.price * itemQuantity;
 
-        await prisma.player.update({
-            where: { playerId: Number(from) },
-            data: {
-                money: player.money - itemPrice * itemQuantity,
-                inventoryItems: {
-                    create: Array(itemQuantity).fill({
-                        item: {
-                            connect: {
-                                itemId
-                            }
-                        }
-                    })
-                }
-            }
-        });
+        if (playerDetails.money < itemPrice) {
+            return sendError(ws, "Unable to purchase item due to insufficient funds");
+        }
 
+        // Update player's money and add purchased items to inventory. Save the playerItemIds of the new items to an array
+        const purchasedItems = await prisma.$transaction([
+            prisma.player.update({
+                where: { playerId: Number(from) },
+                data: {
+                    money: playerDetails.money - itemPrice,
+                    inventoryItems: {
+                        create: Array(itemQuantity).fill({
+                            item: {
+                                connect: {
+                                    itemId: itemId,
+                                },
+                            },
+                        }),
+                    },
+                },
+                select: {
+                    inventoryItems: {
+                        select: {
+                            playerItemId: true,
+                        },
+                    },
+                },
+            }),
+        ]);
+
+        let playerItemIds = purchasedItems.map(i => i.inventoryItems.map(x => x.playerItemId)).flat();
+        
+        // Construct the response payload
+        const responsePayload = {
+            balance: playerDetails.money - itemPrice,
+            success: "true",
+            _cmd: "makePurchase",
+            inventory: [
+                {
+                    swf: "",
+                    assetTypeId: 0,
+                    startItem: 0,
+                    is_buyable: 1,
+                    playerItemIds: playerItemIds, // this should be the playerItemIds of the newly created inventoryitems
+                    activeInStore: 1,
+                    description: itemDetails.description,
+                    customData: {},
+                    metaData: "",
+                    price: itemPrice,
+                    is_rentable: 0,
+                    currency: "coins",
+                    playerId: Number(from), // FIX
+                    quantity: itemQuantity,
+                    newItem: true,
+                    price_cash: "0",
+                    version: 1,
+                    playerItemId: playerItemIds[0],
+                    trade_limit: "1",
+                    rental: 0,
+                    tags: "",
+                    itemId: itemDetails.itemId.toString(),
+                    filename: itemDetails.filename,
+                    name: itemDetails.name,
+                    paid: itemPrice,
+                    parentCategoryId: itemDetails.category.parentId ?? "??",
+                    category: itemDetails.category.name,
+                    categoryId: itemDetails.categoryId.toString(),
+                    can_consume: "0",
+                },
+            ],
+        };
+
+        // Send the response
+        ws.send(JSON.stringify(responsePayload));
 
     } catch (error) {
         console.error('Error handling makePurchase command:', error);
+        // Handle the error and send an appropriate error response if needed
     }
 };
+

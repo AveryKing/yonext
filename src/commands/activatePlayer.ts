@@ -12,7 +12,7 @@ type ActivatePlayerInbound = {
     sessionId: string;
 };
 
-export const handleActivatePlayer = async (ws: WebSocket, payload: ActivatePlayerInbound): Promise<void> => {
+export const handleActivatePlayer = async (ws: WebSocket, payload: ActivatePlayerInbound) => {
     try {
         const { playerId } = payload;
 
