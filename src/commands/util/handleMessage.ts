@@ -2,6 +2,7 @@ import * as WebSocket from 'ws';
 import { handleMakePurchase } from '../makePurchase';
 import { handleActivatePlayer } from '../activatePlayer';
 import { getInventory, getPageInventoryByFilter, getTabInventoryByFilter } from '../getInventory';
+import { getGameItemList } from '../getGameItemList';
 
 export const handleMessage = (ws: WebSocket, message: string): void => {
     try {
@@ -23,6 +24,9 @@ export const handleMessage = (ws: WebSocket, message: string): void => {
                 break;
             case 'InventoryManager.getInventory':
                 getInventory(ws, msg)
+                break;
+            case 'ItemManager.getGameItemList':
+                getGameItemList(ws, msg);
                 break;
 
             // Add cases for other commands...

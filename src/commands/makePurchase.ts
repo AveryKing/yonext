@@ -1,5 +1,5 @@
 import * as WebSocket from 'ws';
-import { prisma } from '../lib/database';
+import { prisma } from '../services/database';
 import { sendError } from './util/error';
 
 type MakePurchaseInbound = {
