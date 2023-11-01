@@ -36,100 +36,69 @@ type InventoryManagerCommand = {
 };
 
 export const getInventory = async (ws: WebSocket, command: any) => {
+
+    // get inventory items from the database
+    // remove duplicate item ids
+
+    let items = await prisma.inventoryItems.findMany({
+        where: {
+            playerId: command.from
+        },
+        include: {
+            item: true
+        }
+    });
+
+    // remove duplicate item ids from items
+    items = items.filter((thing, index, self) =>
+        index === self.findIndex((t) => (
+            t.itemId === thing.itemId
+        ))
+    )
+
+
+
+    const inventory = items.map(i => {
+        return {
+            "fg": 0,
+            "swf": "",
+            "assetTypeId": "0",
+            "startItem": "0",
+            "activeInStore": 0,
+            "customData": {},
+            "can_gift": "1",
+            "metaData": "",
+            "price": "1000",
+            "forceRasterize": "0",
+            "playerId": i.playerId,
+            "newItem": false,
+            "g": "2",
+            "price_cash": "0",
+            "version": 1001,
+            "playerItemId": i.playerItemId,
+            "trade_limit": "1",
+            "rental": 0,
+            "tags": "",
+            "itemId": i.itemId,
+            "filename": i.item?.filename,
+            "name": i.item?.name,
+            "parentCategoryId": "3",
+            "category": "Costumes",
+            "categoryId": "2025",
+            "can_consume": "0"
+        }
+    })
+
     const response = {
         "itemsInUse": [],
         "_cmd": "getInventory",
-        "inventory": [
-            {
-                "fg": 0,
-                "swf": "",
-                "assetTypeId": "0",
-                "startItem": "0",
-                "activeInStore": 0,
-                "customData": {},
-                "can_gift": "1",
-                "metaData": "",
-                "price": "1000",
-                "forceRasterize": "0",
-                "playerId": "187901763",
-                "newItem": false,
-                "g": "2",
-                "price_cash": "0",
-                "version": 1001,
-                "playerItemId": "97",
-                "trade_limit": "1",
-                "rental": 0,
-                "tags": "",
-                "itemId": "25207",
-                "filename": "Ninja",
-                "name": "Ninja",
-                "parentCategoryId": "3",
-                "category": "Costumes",
-                "categoryId": "2025",
-                "can_consume": "0"
-            },
-            {
-                "fg": 0,
-                "swf": "",
-                "assetTypeId": "0",
-                "startItem": "0",
-                "activeInStore": 0,
-                "customData": {},
-                "can_gift": "1",
-                "metaData": "",
-                "price": "1000",
-                "forceRasterize": "0",
-                "playerId": "187901763",
-                "newItem": false,
-                "g": "2",
-                "price_cash": "0",
-                "version": 1001,
-                "playerItemId": "113",
-                "trade_limit": "1",
-                "rental": 0,
-                "tags": "",
-                "itemId": "25266",
-                "filename": "Dorothy",
-                "name": "Yorothy",
-                "parentCategoryId": "3",
-                "category": "Costumes",
-                "categoryId": "2025",
-                "can_consume": "0"
-            },
-            {
-                "fg": 0,
-                "swf": "",
-                "assetTypeId": "0",
-                "startItem": "0",
-                "activeInStore": 0,
-                "customData": {},
-                "can_gift": "1",
-                "metaData": "",
-                "price": "1000",
-                "forceRasterize": "0",
-                "playerId": "187901763",
-                "newItem": false,
-                "g": "2",
-                "price_cash": "0",
-                "version": 1001,
-                "playerItemId": "112",
-                "trade_limit": "1",
-                "rental": 0,
-                "tags": "",
-                "itemId": "25271",
-                "filename": "Eve",
-                "name": "Nature Woman",
-                "parentCategoryId": "3",
-                "category": "Costumes",
-                "categoryId": "2025",
-                "can_consume": "0"
-            }
-        ],
+        "inventory": inventory,
         "expiredItems": [],
         "done": true,
         "serialNo": 1
     };
 
+    console.log(response);
     ws.send(JSON.stringify(response));
 }
 
@@ -256,3 +225,27 @@ export const getTabInventoryByFilter = async (ws: WebSocket, command: InventoryM
     }
 };
 
+export const getItemPiidsForDelete = async (ws: WebSocket, command: any) => {
+
+    const { from, itemId, amount } = command;
+
+
+    const items = await prisma.inventoryItems.findMany({
+        where: {
+            playerId: from,
+            itemId: itemId
+        },
+        take: amount
+    });
+
+    if (items.length < amount) {
+        sendError(ws, `You have requested to delete more of this item than you own.`)
+    }
+        const response = {
+            itemId: itemId,
+            piids: items.map(i => i.playerItemId),
+            _cmd: "InventoryManager.getItemPiidsForDelete"
+        }
+
+        ws.send(JSON.stringify(response));
+    }

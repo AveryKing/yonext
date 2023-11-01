@@ -1,31 +1,38 @@
 import * as https from 'https';
 import * as fs from 'fs';
 import express from 'express';
-import * as WebSocket from 'ws';
-import { socketService } from './services/websocket'; // Updated import
+import * as WebSocket from 'ws';  // Correct import
 import { initDB } from './services/database';
 import * as path from 'path';
 import cors from 'cors';
+import { createSocketService } from './services/websocket';
 
-const app = express();
-const server = https.createServer({
-    cert: fs.readFileSync('keys/server.crt'),
-    key: fs.readFileSync('keys/server.key'),
-}, app);
+function handleConnection(socket: WebSocket, rooms: Map<string, Set<WebSocket>>) {
+    createSocketService({ socket, rooms });
+}
 
-// Serve static files from the 'public' folder
-app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
+function startServer() {
+    const app = express();
+    const server = https.createServer({
+        cert: fs.readFileSync('keys/server.crt'),
+        key: fs.readFileSync('keys/server.key'),
+    }, app);
 
-const PORT = process.env.PORT || 8443;
+    app.use(cors());
+    app.use(express.static(path.join(__dirname, 'public')));
 
-server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
+    const rooms = new Map<string, Set<WebSocket>>();
+    initDB(); // Initialize the database
 
-const wss = new WebSocket.Server({ server });
-const rooms = new Map<string, Set<WebSocket>>();
+    server.listen(process.env.PORT || 8443, () => {
+        console.log(`Server started on port ${process.env.PORT || 8443} :)`);
+    });
 
-initDB(); // Initialize the database
+    const wss = new WebSocket.Server({ server });
+    wss.on('connection', (socket: WebSocket) => handleConnection(socket, rooms));  // Add type annotation
 
-wss.on('connection', (socket: WebSocket) => socketService({ socket, rooms })); 
+    // Continue with your WebSocket server setup
+}
+
+// Start the server
+startServer();
